@@ -22,7 +22,7 @@ com! -bang Large        call s:LargeFile(<bang>0,expand("%"))
 " ---------------------------------------------------------------------
 "  Options: {{{1
 if !exists("g:LargeFile")
-  let g:LargeFile= 20  " in megabytes
+  let g:LargeFile = 20
 endif
 
 " ---------------------------------------------------------------------
@@ -39,9 +39,7 @@ augroup END
 " s:LargeFile: {{{2
 fun! s:LargeFile(force,fname)
   "  call Dfunc("s:LargeFile(force=".a:force." fname<".a:fname.">) g:LargeFile=".g:LargeFile)
-  let fsz= getfsize(a:fname)
-  "  call Decho("fsz=".fsz)
-  if a:force || fsz >= g:LargeFile*1024*1024 || fsz <= -2
+  if a:force || s:IsLarge(a:fname)
     sil! call s:ParenMatchOff()
     syn clear
     let b:LargeFile_mode = 1
@@ -66,13 +64,20 @@ endfun
 " ---------------------------------------------------------------------
 " s:LargeFilePost: {{{2
 fun! s:LargeFilePost()
-  "  call Dfunc("s:LargeFilePost() ".line2byte(line("$")+1)."bytes g:LargeFile=".g:LargeFile.(exists("b:LargeFile_mode")? " b:LargeFile_mode=".b:LargeFile_mode : ""))
-  if line2byte(line("$")+1) >= g:LargeFile*1024*1024
-    if !exists("b:LargeFile_mode") || b:LargeFile_mode == 0
-      call s:LargeFile(1,expand("<afile>"))
-    endif
+  if get(b:, 'LargeFile_mode', 1) == 0 && s:IsLarge(line2byte(line("$")+1))
+    call s:LargeFile(1, expand("<afile>"))
   endif
-  "  call Dret("s:LargeFilePost")
+  " call Dret("s:LargeFilePost")
+endfun
+
+" ---------------------------------------------------------------------
+" s:IsLarge: {{{2
+fun! s:IsLarge(fname_or_bytes)
+  let bytes = type(a:fname_or_bytes) == type('') ?
+        \ getfsize(a:fname_or_bytes) :
+        \ a:fname_or_bytes
+  " call Dfunc("s:IsLarge(fname_or_bytes=" . a:fname_or_bytes . ") g:LargeFile=" . g:LargeFile . " b:LargeFile_mode=" . get(b:, 'LargeFile_mode', '(not set)'))
+  return bytes >= g:LargeFile * get(g:, 'LargeFile_size_unit', 1024 * 1024) || bytes <= -2
 endfun
 
 " ---------------------------------------------------------------------

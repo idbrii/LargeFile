@@ -62,6 +62,20 @@ about loading a large file:
     commands to chop up your file into manageable bits to edit subsets of
     them, and then piece them all back together with cat.
 
+==============================================================================
+1.1. Options						*largefile-options* {{{1
+
+								 *g:LargeFile*
+g:LargeFile		(default: 20) ~
+
+    Minimum file size to detect whether a file is Large.
+    The unit is set by |g:LargeFile_size_unit|, which is default to Megabyte.
+
+						       *g:LargeFile_size_unit*
+g:LargeFile_size_unit	(default: none) ~
+
+    Unit of |g:LargeFile| in bytes.
+    If not set, default unit is 1024 * 1024 bytes (MB).
 
 ==============================================================================
 2. History						*largefile-history* {{{1
