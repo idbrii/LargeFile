@@ -25,14 +25,22 @@ if !exists("g:LargeFile")
   let g:LargeFile = 20
 endif
 
+if !exists("g:LargeFile_patterns")
+  let g:LargeFile_patterns = '*'
+endif
+
 " ---------------------------------------------------------------------
 "  LargeFile Autocmd: {{{1
 " for large files: turns undo, syntax highlighting, undo off etc
 " (based on vimtip#611)
 augroup LargeFile
   au!
-  au BufReadPre  * call <SID>LargeFile(0,expand("<afile>"))
-  au BufReadPost * call <SID>LargeFilePost()
+  execute 'autocmd LargeFile BufReadPre ' .
+        \ g:LargeFile_patterns .
+        \ ' call <SID>LargeFile(0, expand("<afile>"))'
+  execute 'autocmd LargeFile BufReadPost ' .
+        \ g:LargeFile_patterns .
+        \ ' call <SID>LargeFilePost()'
 augroup END
 
 " ---------------------------------------------------------------------

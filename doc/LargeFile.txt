@@ -77,6 +77,14 @@ g:LargeFile_size_unit	(default: none) ~
     Unit of |g:LargeFile| in bytes.
     If not set, default unit is 1024 * 1024 bytes (MB).
 
+							*g:LargeFile_patterns*
+g:LargeFile_patterns	(default: '*') ~
+
+    Only do LargeFile autocommands when files match this pattern.
+    For example:
+    Set this to '*.log' if you only want LargeFile to handle log files.
+    See |autocmd-patterns|.
+
 ==============================================================================
 2. History						*largefile-history* {{{1
 
