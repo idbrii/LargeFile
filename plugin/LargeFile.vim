@@ -56,6 +56,10 @@ augroup END
 " ---------------------------------------------------------------------
 " s:LargeFile: {{{2
 fun! s:LargeFile(force,fname)
+  if get(b:, 'LargeFile_mode', 0)
+    return
+  endif
+
   "  call Dfunc("s:LargeFile(force=".a:force." fname<".a:fname.">) g:LargeFile=".g:LargeFile)
   if a:force || s:IsLarge(a:fname)
     sil! call s:ParenMatchOff()
@@ -106,7 +110,9 @@ endfun
 " ---------------------------------------------------------------------
 " s:LargeBufUnload: {{{2
 fun! s:LargeBufUnload()
-  autocmd! LargeFile * <buffer>
+  if expand("<afile>") != bufname("%")
+    autocmd! LargeFile * <buffer>
+  endif
 endfun
 
 " ---------------------------------------------------------------------
