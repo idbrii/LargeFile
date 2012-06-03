@@ -80,6 +80,7 @@ fun! s:LargeFile(force,fname)
     autocmd LargeFile BufEnter <buffer> call s:LargeBufEnter()
     autocmd LargeFile BufLeave <buffer> call s:LargeBufLeave()
     autocmd LargeFile BufUnload <buffer> call s:LargeBufUnload()
+    autocmd LargeFile BufRead <buffer> doautocmd User LargeFileRead
     echomsg "***note*** handling a large file"
   endif
   "  call Dret("s:LargeFile")
