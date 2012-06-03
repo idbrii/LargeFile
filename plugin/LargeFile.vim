@@ -73,11 +73,9 @@ fun! s:LargeFile(force,fname)
       endif
     endfor
 
-    au LargeFile BufEnter <buffer> set ul=-1
-    execute "autocmd LargeFile BufLeave <buffer> " .
-          \ "let &l:undolevels=" . b:LargeFile_store['&undolevels'] .
-          \ " | setlocal eventignore=" . b:LargeFile_store['&eventignore']
-    au LargeFile BufUnload <buffer> au! LargeFile * <buffer>
+    autocmd LargeFile BufEnter <buffer> call s:LargeBufEnter()
+    autocmd LargeFile BufLeave <buffer> call s:LargeBufLeave()
+    autocmd LargeFile BufUnload <buffer> call s:LargeBufUnload()
     echomsg "***note*** handling a large file"
   endif
   "  call Dret("s:LargeFile")
@@ -90,6 +88,25 @@ fun! s:LargeFilePost()
     call s:LargeFile(1, expand("<afile>"))
   endif
   " call Dret("s:LargeFilePost")
+endfun
+
+" ---------------------------------------------------------------------
+" s:LargeBufEnter: {{{2
+fun! s:LargeBufEnter()
+  setlocal undolevels=-1
+endfun
+
+" ---------------------------------------------------------------------
+" s:LargeBufLeave: {{{2
+fun! s:LargeBufLeave()
+  let &l:undolevels  = b:LargeFile_store['&undolevels']
+  let &l:eventignore = string(b:LargeFile_store['&eventignore'])
+endfun
+
+" ---------------------------------------------------------------------
+" s:LargeBufUnload: {{{2
+fun! s:LargeBufUnload()
+  autocmd! LargeFile * <buffer>
 endfun
 
 " ---------------------------------------------------------------------
