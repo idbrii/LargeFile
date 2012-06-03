@@ -29,6 +29,16 @@ if !exists("g:LargeFile_patterns")
   let g:LargeFile_patterns = '*'
 endif
 
+let s:vim_options = {
+      \   '&l:swapfile':   0,
+      \   '&l:bufhidden':  'unload',
+      \   '&l:foldmethod': 'manual',
+      \   '&l:foldenable': 0,
+      \   '&l:complete':   '-wbuU',
+      \   '&undolevels':   -1,
+      \   '&eventignore':  'FileType'
+      \ }
+
 " ---------------------------------------------------------------------
 "  LargeFile Autocmd: {{{1
 " for large files: turns undo, syntax highlighting, undo off etc
@@ -52,17 +62,21 @@ fun! s:LargeFile(force,fname)
     syn clear
     let b:LargeFile_mode = 1
     "   call Decho("turning  b:LargeFile_mode to ".b:LargeFile_mode)
-    let b:LF_bhkeep      = &l:bh
-    let b:LF_cptkeep     = &cpt
-    let b:LF_eikeep      = &ei
-    let b:LF_fdmkeep     = &l:fdm
-    let b:LF_fenkeep     = &l:fen
-    let b:LF_swfkeep     = &l:swf
-    let b:LF_ulkeep      = &ul
-    set ei=FileType
-    setlocal noswf bh=unload fdm=manual ul=-1 nofen cpt-=wbuU
+
+    let b:LargeFile_store = copy(s:vim_options)
+    for [key, new_value] in items(b:LargeFile_store)
+      let b:LargeFile_store[key] = getbufvar('%', key)
+      if type(new_value) == type('') && new_value[0] =~ '\v(\+|-)'
+        execute "setlocal " . matchstr(key, '\v\l+$') . new_value[0] . '=' . new_value[1:-1]
+      else
+        let b:[key] = new_value
+      endif
+    endfor
+
     au LargeFile BufEnter <buffer> set ul=-1
-    exe "au LargeFile BufLeave <buffer> let &ul=".b:LF_ulkeep."|set ei=".b:LF_eikeep
+    execute "autocmd LargeFile BufLeave <buffer> " .
+          \ "let &l:undolevels=" . b:LargeFile_store['&undolevels'] .
+          \ " | setlocal eventignore=" . b:LargeFile_store['&eventignore']
     au LargeFile BufUnload <buffer> au! LargeFile * <buffer>
     echomsg "***note*** handling a large file"
   endif
@@ -108,13 +122,12 @@ fun! s:Unlarge()
   "  call Dfunc("s:Unlarge()")
   let b:LargeFile_mode= 0
   "  call Decho("turning  b:LargeFile_mode to ".b:LargeFile_mode)
-  if exists("b:LF_bhkeep") |let &l:bh  = b:LF_bhkeep |unlet b:LF_bhkeep |endif
-  if exists("b:LF_fdmkeep")|let &l:fdm = b:LF_fdmkeep|unlet b:LF_fdmkeep|endif
-  if exists("b:LF_fenkeep")|let &l:fen = b:LF_fenkeep|unlet b:LF_fenkeep|endif
-  if exists("b:LF_swfkeep")|let &l:swf = b:LF_swfkeep|unlet b:LF_swfkeep|endif
-  if exists("b:LF_ulkeep") |let &ul    = b:LF_ulkeep |unlet b:LF_ulkeep |endif
-  if exists("b:LF_eikeep") |let &ei    = b:LF_eikeep |unlet b:LF_eikeep |endif
-  if exists("b:LF_cptkeep")|let &cpt   = b:LF_cptkeep|unlet b:LF_cptkeep|endif
+
+  for [key, old_value] in items(b:LargeFile_store)
+    execute 'let ' . key . ' = ' . string(old_value)
+  endfor
+  unlet! b:LargeFile_store
+
   if exists("b:LF_nmpkeep")
     DoMatchParen
     unlet b:LF_nmpkeep
