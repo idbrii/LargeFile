@@ -116,4 +116,6 @@ endfun
 "  Restore: {{{1
 let &cpo= s:keepcpo
 unlet s:keepcpo
-" vim: ts=4 fdm=marker
+
+" modeline {{{1
+" vim: ts=4 shiftwidth=2 fdm=marker expandtab
