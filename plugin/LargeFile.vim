@@ -149,6 +149,8 @@ endfun
 " s:Unlarge: this function will undo what the LargeFile autocmd does {{{2
 fun! s:Unlarge()
   "  call Dfunc("s:Unlarge()")
+  autocmd! LargeFile * <buffer>
+
   if exists('b:LargeFile_store')
     for [key, old_value] in items(b:LargeFile_store)
       if type(old_value) == type('')
