@@ -73,7 +73,7 @@ fun! s:LargeFile(force,fname)
       if type(new_value) == type('') && new_value[0] =~ '\v(\+|-)'
         execute "setlocal " . matchstr(key, '\v\l+$') . new_value[0] . '=' . new_value[1:-1]
       else
-        let b:[key] = new_value
+        execute "let " . key . "=" . string(new_value)
       endif
     endfor
 
