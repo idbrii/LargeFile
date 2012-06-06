@@ -93,10 +93,16 @@ enhance LargeFile editing. For example: >
     autocmd User LargeFileRead set syntax=httplog
 <
 
-Currently only support one event:
-							       *LargeFileRead*
+Currently available events:
+							   *autocmd-LargeFile*
+- LargeFile~
+  After a buffer has been detected as "Large", and all option/autocmd changes
+  have been done.
+						       *autocmd-LargeFileRead*
 - LargeFileRead~
   Like |BufRead|, but only on LargeFile buffers.
+  Difference between |autocmd-LargeFile|: this will be triggered even when
+  execute |:edit| on a buffer which is already handled by LargeFile.
 
 ==============================================================================
 2. History						*largefile-history* {{{1
