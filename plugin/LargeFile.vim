@@ -56,7 +56,7 @@ augroup END
 " ---------------------------------------------------------------------
 " s:LargeFile: {{{2
 fun! s:LargeFile(force,fname)
-  if get(b:, 'LargeFile_mode', 0)
+  if exists('b:LargeFile_store')
     return
   endif
 
@@ -64,8 +64,6 @@ fun! s:LargeFile(force,fname)
   if a:force || s:IsLarge(a:fname)
     sil! call s:ParenMatchOff()
     syn clear
-    let b:LargeFile_mode = 1
-    "   call Decho("turning  b:LargeFile_mode to ".b:LargeFile_mode)
 
     let b:LargeFile_store = copy(s:vim_options)
     for [key, new_value] in items(b:LargeFile_store)
@@ -94,7 +92,7 @@ endfun
 " ---------------------------------------------------------------------
 " s:LargeFilePost: {{{2
 fun! s:LargeFilePost()
-  if get(b:, 'LargeFile_mode', 1) == 0 && s:IsLarge(line2byte(line("$")+1))
+  if exists('b:LargeFile_store') && s:IsLarge(line2byte(line("$")+1))
     call s:LargeFile(1, expand("<afile>"))
   endif
   " call Dret("s:LargeFilePost")
@@ -128,7 +126,7 @@ fun! s:IsLarge(fname_or_bytes)
   let bytes = type(a:fname_or_bytes) == type('') ?
         \ getfsize(a:fname_or_bytes) :
         \ a:fname_or_bytes
-  " call Dfunc("s:IsLarge(fname_or_bytes=" . a:fname_or_bytes . ") g:LargeFile=" . g:LargeFile . " b:LargeFile_mode=" . get(b:, 'LargeFile_mode', '(not set)'))
+  " call Dfunc("s:IsLarge(fname_or_bytes=" . a:fname_or_bytes . ") g:LargeFile=" . g:LargeFile)
   return bytes >= g:LargeFile * get(g:, 'LargeFile_size_unit', 1024 * 1024) || bytes <= -2
 endfun
 
@@ -150,17 +148,16 @@ endfun
 " s:Unlarge: this function will undo what the LargeFile autocmd does {{{2
 fun! s:Unlarge()
   "  call Dfunc("s:Unlarge()")
-  let b:LargeFile_mode= 0
-  "  call Decho("turning  b:LargeFile_mode to ".b:LargeFile_mode)
-
-  for [key, old_value] in items(b:LargeFile_store)
-    if type(old_value) == type('')
-      execute "setlocal " . key . '=' . old_value
-    else
-      execute "let &l:" . key . '=' . old_value
-    endif
-  endfor
-  unlet! b:LargeFile_store
+  if exists('b:LargeFile_store')
+    for [key, old_value] in items(b:LargeFile_store)
+      if type(old_value) == type('')
+        execute "setlocal " . key . '=' . old_value
+      else
+        execute "let &l:" . key . '=' . old_value
+      endif
+    endfor
+    unlet! b:LargeFile_store
+  endif
 
   if exists("b:LF_nmpkeep")
     DoMatchParen
