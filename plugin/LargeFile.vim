@@ -30,13 +30,13 @@ if !exists("g:LargeFile_patterns")
 endif
 
 let s:vim_options = {
-      \   '&l:swapfile':   0,
-      \   '&l:bufhidden':  'unload',
-      \   '&l:foldmethod': 'manual',
-      \   '&l:foldenable': 0,
-      \   '&l:complete':   '-wbuU',
-      \   '&undolevels':   -1,
-      \   '&eventignore':  'FileType'
+      \   'swapfile':    0,
+      \   'bufhidden':   'unload',
+      \   'foldmethod':  'manual',
+      \   'foldenable':  0,
+      \   'complete':    '-wbuU',
+      \   'undolevels':  -1,
+      \   'eventignore': 'FileType'
       \ }
 
 " ---------------------------------------------------------------------
@@ -69,11 +69,15 @@ fun! s:LargeFile(force,fname)
 
     let b:LargeFile_store = copy(s:vim_options)
     for [key, new_value] in items(b:LargeFile_store)
-      let b:LargeFile_store[key] = getbufvar('%', key)
-      if type(new_value) == type('') && new_value[0] =~ '\v(\+|-)'
-        execute "setlocal " . matchstr(key, '\v\l+$') . new_value[0] . '=' . new_value[1:-1]
+      let b:LargeFile_store[key] = getbufvar('%', '&l:' . key)
+      if type(new_value) == type('')
+        if new_value[0] =~ '\v(\+|-)'
+          execute "setlocal " . key . new_value[0] . '=' . new_value[1:-1]
+        else
+          execute "setlocal " . key . '=' . new_value
+        endif
       else
-        execute "let " . key . "=" . string(new_value)
+        execute "let &l:" . key . '=' . new_value
       endif
     endfor
 
@@ -100,13 +104,14 @@ endfun
 " s:LargeBufEnter: {{{2
 fun! s:LargeBufEnter()
   setlocal undolevels=-1
+  setlocal eventignore=FileType
 endfun
 
 " ---------------------------------------------------------------------
 " s:LargeBufLeave: {{{2
 fun! s:LargeBufLeave()
-  let &l:undolevels  = b:LargeFile_store['&undolevels']
-  let &l:eventignore = string(b:LargeFile_store['&eventignore'])
+  execute "setlocal undolevels=" . b:LargeFile_store['undolevels']
+  execute "setlocal eventignore=" . b:LargeFile_store['eventignore']
 endfun
 
 " ---------------------------------------------------------------------
@@ -149,7 +154,11 @@ fun! s:Unlarge()
   "  call Decho("turning  b:LargeFile_mode to ".b:LargeFile_mode)
 
   for [key, old_value] in items(b:LargeFile_store)
-    execute 'let ' . key . ' = ' . string(old_value)
+    if type(old_value) == type('')
+      execute "setlocal " . key . '=' . old_value
+    else
+      execute "let &l:" . key . '=' . old_value
+    endif
   endfor
   unlet! b:LargeFile_store
 
