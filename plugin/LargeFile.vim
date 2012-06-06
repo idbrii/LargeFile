@@ -173,8 +173,10 @@ endfun
 " ---------------------------------------------------------------------
 " s:Msg: {{{2
 fun! s:Msg(string)
-  redraw
-  echohl WarningMsg | echomsg a:string | echohl None
+  if get(g:, 'LargeFile_verbose', 1)
+    redraw
+    echohl WarningMsg | echomsg a:string | echohl None
+  endif
 endfun
 
 " ---------------------------------------------------------------------
