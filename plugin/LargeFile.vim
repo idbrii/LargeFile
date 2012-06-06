@@ -83,7 +83,8 @@ fun! s:LargeFile(force,fname)
     autocmd LargeFile BufLeave <buffer> call s:LargeBufLeave()
     autocmd LargeFile BufUnload <buffer> call s:LargeBufUnload()
     autocmd LargeFile BufRead <buffer> doautocmd User LargeFileRead
-    echomsg "***note*** handling a large file"
+    call s:Msg("*NOTE* handling a large file")
+
     doautocmd User LargeFile
   endif
   "  call Dret("s:LargeFile")
@@ -165,8 +166,15 @@ fun! s:Unlarge()
   endif
   syn on
   doau FileType
-  echomsg "***note*** stopped large-file handling"
+  call s:Msg("*NOTE* stopped large-file handling")
   "  call Dret("s:Unlarge")
+endfun
+
+" ---------------------------------------------------------------------
+" s:Msg: {{{2
+fun! s:Msg(string)
+  redraw
+  echohl WarningMsg | echomsg a:string | echohl None
 endfun
 
 " ---------------------------------------------------------------------
