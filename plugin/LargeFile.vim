@@ -109,8 +109,7 @@ endfun
 " ---------------------------------------------------------------------
 " s:LargeBufLeave: {{{2
 fun! s:LargeBufLeave()
-  execute "setlocal undolevels=" . b:LargeFile_store['undolevels']
-  execute "setlocal eventignore=" . b:LargeFile_store['eventignore']
+  call s:RestoreOptions('undolevels', 'eventignore')
 endfun
 
 " ---------------------------------------------------------------------
@@ -150,26 +149,33 @@ endfun
 fun! s:Unlarge()
   "  call Dfunc("s:Unlarge()")
   autocmd! LargeFile * <buffer>
+  call s:RestoreOptions()
+  unlet! b:LargeFile_store
 
+  syn on
+  doau FileType
+  call s:Msg("*NOTE* stopped large-file handling")
+  "  call Dret("s:Unlarge")
+endfun
+
+" ---------------------------------------------------------------------
+" s:RestoreOptions: {{{2
+fun! s:RestoreOptions(...)
   if exists('b:LargeFile_store')
-    for [key, old_value] in items(b:LargeFile_store)
+    let store = filter(copy(b:LargeFile_store), a:0 > 0 ? 'index(a:000, v:key) > -1' : '1')
+    for [key, old_value] in items(store)
       if type(old_value) == type('')
         execute "setlocal " . key . '=' . old_value
       else
         execute "let &l:" . key . '=' . old_value
       endif
     endfor
-    unlet! b:LargeFile_store
   endif
 
   if exists("b:LF_nmpkeep")
     DoMatchParen
     unlet b:LF_nmpkeep
   endif
-  syn on
-  doau FileType
-  call s:Msg("*NOTE* stopped large-file handling")
-  "  call Dret("s:Unlarge")
 endfun
 
 " ---------------------------------------------------------------------
