@@ -57,7 +57,7 @@ augroup END
 " s:LargeFile: {{{2
 fun! s:LargeFile(force,fname)
   if exists('b:LargeFile_store')
-    return
+    call s:RestoreOptions()
   endif
 
   "  call Dfunc("s:LargeFile(force=".a:force." fname<".a:fname.">) g:LargeFile=".g:LargeFile)
@@ -115,9 +115,7 @@ endfun
 " ---------------------------------------------------------------------
 " s:LargeBufUnload: {{{2
 fun! s:LargeBufUnload()
-  if expand("<afile>") != bufname("%")
-    autocmd! LargeFile * <buffer>
-  endif
+  autocmd! LargeFile * <buffer>
 endfun
 
 " ---------------------------------------------------------------------
