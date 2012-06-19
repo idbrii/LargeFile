@@ -101,13 +101,12 @@ enhance LargeFile editing. For example: >
 Currently available events:
 							   *autocmd-LargeFile*
 - LargeFile~
-  After a buffer has been detected as "Large", and all option/autocmd changes
-  have been done.
+  After a buffer has been detected as "Large" and all option/autocmd
+  adjustments have been done.
+  This also occurs when read a buffer with |:edit| or |gf|.
 						       *autocmd-LargeFileRead*
 - LargeFileRead~
-  Like |BufRead|, but only on LargeFile buffers.
-  Difference between |autocmd-LargeFile|: this will be triggered even when
-  execute |:edit| on a buffer which is already handled by LargeFile.
+  Every time a |BufRead| event occurs within an already "Large" file.
 
 ==============================================================================
 2. History						*largefile-history* {{{1
