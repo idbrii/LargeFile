@@ -62,7 +62,11 @@ fun! s:LargeFile(force,fname)
 
   "  call Dfunc("s:LargeFile(force=".a:force." fname<".a:fname.">) g:LargeFile=".g:LargeFile)
   if a:force || s:IsLarge(a:fname)
-    sil! call s:ParenMatchOff()
+   " ParenMatchOff causes
+   " E201: *ReadPre autocommands must not change current buffer
+   " When opening loading 29 MB file and then a 28 MB file in a split.
+   " gvim 28mb.txt 29mb.txt +split +n
+   "sil! call s:ParenMatchOff()
     syn clear
 
     let b:LargeFile_store = copy(s:vim_options)
