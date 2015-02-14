@@ -1,7 +1,7 @@
 " LargeFile: Sets up an autocmd to make editing large files work with celerity
 "   Author:		Charles E. Campbell
-"   Date:		Nov 25, 2013
-"   Version:	5
+"   Date:		Jan 08, 2015
+"   Version:	7b	ASTRO-ONLY
 "   Copyright:	see :help LargeFile-copyright
 " GetLatestVimScripts: 1506 1 :AutoInstall: LargeFile.vim
 "DechoRemOn
@@ -11,7 +11,7 @@
 if exists("g:loaded_LargeFile") || &cp
  finish
 endif
-let g:loaded_LargeFile = "v5"
+let g:loaded_LargeFile = "v7b"
 let s:keepcpo          = &cpo
 set cpo&vim
 
@@ -45,35 +45,41 @@ fun! s:LargeFile(force,fname)
   if a:force || fsz >= g:LargeFile*1024*1024 || fsz <= -2
    sil! call s:ParenMatchOff()
    syn clear
-   let b:LF_bhkeep      = &l:bh
-   let b:LF_bkkeep      = &l:bk
-   let b:LF_cptkeep     = &cpt
-   let b:LF_eikeep      = &ei
-   let b:LF_fdmkeep     = &l:fdm
-   let b:LF_fenkeep     = &l:fen
-   let b:LF_swfkeep     = &l:swf
+   " buffer variables are used for buffer,window-local options
+   " script variables are used for global-only options
+   let b:LF_bhkeep  = &l:bh
+   let s:LF_bkkeep  = &bk
+   let b:LF_cptkeep = &l:cpt
+   let s:LF_eikeep  = &ei
+   let b:LF_fdmkeep = &l:fdm
+   let b:LF_fenkeep = &l:fen
+   let s:LF_wbkeep  = &wb
+   let b:LF_swfkeep = &l:swf
    if v:version > 704 || (v:version == 704 && has("patch073"))
-    let b:LF_ulkeep     = &l:ul
+    let b:LF_ulkeep = &l:ul
    else
-    let b:LF_ulkeep     = &ul
+    let b:LF_ulkeep = &ul
    endif
-   let b:LF_wbkeep      = &l:wb
+   let b:LF_wbkeep  = &l:wb
    set ei=FileType
-   if v:version > 704 || (v:version == 704 && has("patch073"))
+   if v:version < 704 || (v:version == 704 && has("patch073"))
 	setlocal noswf bh=unload fdm=manual nofen cpt-=wbuU nobk nowb ul=-1
    else
     setlocal noswf bh=unload fdm=manual nofen cpt-=wbuU nobk nowb
    endif
    augroup LargeFileAU
     if v:version < 704 || (v:version == 704 && !has("patch073"))
-     au LargeFile BufEnter  <buffer> call s:LargeFileEnter()
-     au LargeFile BufLeave  <buffer> call s:LargeFileLeave()
+     au BufEnter	<buffer>	call s:LargeFileEnter()
+     au BufLeave	<buffer>	call s:LargeFileLeave()
 	endif
-    au LargeFile BufUnload <buffer> augroup LargeFileAU|au! * <buffer>|augroup END
+	au WinEnter		*			call s:LargeFileWinEnter()
+    au BufUnload	<buffer>	augroup LargeFileAU|au! * <buffer>|augroup END
    augroup END
    let b:LargeFile_mode = 1
 "   call Decho("turning  b:LargeFile_mode to ".b:LargeFile_mode)
    echomsg "***note*** handling a large file" 
+  elseif exists("s:LF_eikeep")
+   let &ei= s:LF_eikeep
   endif
 "  call Dret("s:LargeFile")
 endfun
@@ -111,13 +117,17 @@ fun! s:Unlarge()
   let b:LargeFile_mode= 0
 "  call Decho("turning  b:LargeFile_mode to ".b:LargeFile_mode)
   if exists("b:LF_bhkeep") |let &l:bh  = b:LF_bhkeep |unlet b:LF_bhkeep |endif
-  if exists("b:LF_bkkeep") |let &l:bk  = b:LF_bkkeep |unlet b:LF_bkkeep |endif
+  if exists("s:LF_bkkeep") |let &l:bk  = s:LF_bkkeep |unlet s:LF_bkkeep |endif
   if exists("b:LF_cptkeep")|let &cpt   = b:LF_cptkeep|unlet b:LF_cptkeep|endif
-  if exists("b:LF_eikeep") |let &ei    = b:LF_eikeep |unlet b:LF_eikeep |endif
+  if exists("s:LF_eikeep") |let &ei    = b:LF_eikeep |unlet b:LF_eikeep |endif
   if exists("b:LF_fdmkeep")|let &l:fdm = b:LF_fdmkeep|unlet b:LF_fdmkeep|endif
   if exists("b:LF_fenkeep")|let &l:fen = b:LF_fenkeep|unlet b:LF_fenkeep|endif
   if exists("b:LF_swfkeep")|let &l:swf = b:LF_swfkeep|unlet b:LF_swfkeep|endif
-  if exists("b:LF_ulkeep") |let &ul    = b:LF_ulkeep |unlet b:LF_ulkeep |endif
+  if v:version > 704 || (v:version == 704 && has("patch073"))
+   if exists("b:LF_ulkeep") |let &l:ul = b:LF_ulkeep |unlet b:LF_ulkeep |endif
+  else
+   if exists("b:LF_ulkeep") |let &ul   = b:LF_ulkeep |unlet b:LF_ulkeep |endif
+  endif
   if exists("b:LF_wbkeep") |let &l:wb  = b:LF_wbkeep |unlet b:LF_wbkeep |endif
   if exists("b:LF_nmpkeep")
    DoMatchParen          
@@ -178,8 +188,8 @@ fun! s:LargeFileLeave()
   endif
 
   " restore event handling
-  if exists("b:LF_eikeep")
-   let &ei= b:LF_eikeep
+  if exists("s:LF_eikeep")
+   let &ei= s:LF_eikeep
   endif
 
   " restore undo level
@@ -187,6 +197,26 @@ fun! s:LargeFileLeave()
    let &ul= b:LF_ulkeep
   endif
 "  call Dret("s:LargeFileLeave")
+endfun
+
+" ---------------------------------------------------------------------
+" s:LargeFileWinEnter: restores/sets global options depending on LargeFile status upon window entry event {{{2
+fun! s:LargeFileWinEnter()
+"  call Dfunc("s:LargeFileWinEnter()")
+  if exists("b:LargeFile_mode") && b:LargeFile_mode
+   set nobk ei=FileType
+  else
+   if exists("s:LF_eikeep")
+	let &ei = s:LF_eikeep
+   endif
+   if exists("s:LF_bkkeep")
+	let &bk = s:LF_bkkeep
+   endif
+   if exists("s:LF_wbkeep")
+	let &wb = s:LF_wbkeep
+   endif
+  endif
+"  call Dret("s:LargeFileWinEnter")
 endfun
 
 " ---------------------------------------------------------------------
