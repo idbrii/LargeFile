@@ -132,10 +132,7 @@ endfun
 " s:ParenMatchOff: {{{2
 fun! s:ParenMatchOff()
   "  call Dfunc("s:ParenMatchOff()")
-  redir => matchparen_enabled
-  com NoMatchParen
-  redir END
-  if matchparen_enabled =~ 'g:loaded_matchparen'
+  if exists(':NoMatchParen') == 2
     let b:LF_nmpkeep= 1
     NoMatchParen
   endif
